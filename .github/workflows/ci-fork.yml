@@ -1,0 +1,27 @@
+# Fork-only copy of the `examples` job of ci.yml (genproof/quickproof-public), for running the
+# Finding 8 reproduction without touching the upstream repository. Differences from ci.yml: the
+# workflow is dispatch-only, there is no `tests` job, the container is the public
+# ghcr.io/genproof/quickproof:latest (the fork's GITHUB_TOKEN cannot pull the private
+# quickproof-toolchain image), and the container runs as root like the -ci image does.
+name: ci-fork
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  packages: read
+defaults:
+  run:
+    shell: bash
+jobs:
+  examples:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/genproof/quickproof:latest
+      options: --user 0:0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trust the checkout
+        run: git config --global --add safe.directory '*'
+      - name: tools/qp examples
+        run: nice tools/qp examples
